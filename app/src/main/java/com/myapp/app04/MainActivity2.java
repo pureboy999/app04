@@ -2,7 +2,9 @@ package com.myapp.app04;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -57,6 +59,13 @@ public class MainActivity2 extends AppCompatActivity {
         bdl.putFloat("euro_rate",Float.parseFloat(str2));
         bdl.putFloat("won_rate",Float.parseFloat(str3));
         main.putExtras(bdl);
+
+        SharedPreferences sp= getSharedPreferences("myrate", Activity.MODE_PRIVATE);
+        SharedPreferences.Editor edit =sp.edit();
+        edit.putFloat("dollar_rate",Float.parseFloat(str1));
+        edit.putFloat("euro_rate",Float.parseFloat(str2));
+        edit.putFloat("won_rate",Float.parseFloat(str3));
+        edit.apply();
         setResult(2,main);
 
         finish();
