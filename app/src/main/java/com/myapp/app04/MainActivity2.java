@@ -8,8 +8,11 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 
 public class MainActivity2 extends AppCompatActivity {
 
@@ -32,6 +35,7 @@ public class MainActivity2 extends AppCompatActivity {
 //        float dollar2 = intent.getFloatExtra("dollar_rate",0.0f);
 //        float euro2 = intent.getFloatExtra("euro_rate",0.0f);
 //        float won2 = intent.getFloatExtra("won_rate",0.0f);
+
         Bundle bdl=intent.getExtras();
         float dollar2 = bdl.getFloat("dollar_rate",0.0f);
         float euro2 = bdl.getFloat("euro_rate",0.0f);
@@ -44,6 +48,8 @@ public class MainActivity2 extends AppCompatActivity {
         ed1.setText(dollar2+"");
         ed2.setText(euro2+"");
         ed3.setText(won2+"");
+
+
     }
     public void save(View V){
         String str1=ed1.getText().toString();

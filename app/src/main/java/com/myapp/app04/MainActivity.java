@@ -18,6 +18,11 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -25,6 +30,8 @@ import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.xml.transform.ErrorListener;
@@ -34,10 +41,7 @@ import static android.provider.ContactsContract.CommonDataKinds.Website.URL;
 public class MainActivity extends AppCompatActivity implements  Runnable {
     private EditText et;
     private TextView tv;
-    private Button bt1;          //定义按钮
-    private Button bt2;
-    private Button bt3;
-    private Button bt4;
+
 
     private static final String TAG = "MainActivity";
     float dollar;
@@ -150,23 +154,34 @@ public class MainActivity extends AppCompatActivity implements  Runnable {
 
     @Override
     public void run() {
-        Log.i(TAG,"run:run()");
-        Message msg=handler.obtainMessage(5);
-        msg.obj="hello from run()";
-        URL url=null;
-        try{
-        url =new URL("https://www.baidu.com");
-            HttpsURLConnection http=(HttpsURLConnection) url.openConnection();
-            InputStream in = http.getInputStream();
-
-            String html =inputStream2String(in);
-            Log.i(TAG,"RUN:HTML="+html);
-        }catch (MalformedURLException e){
-            e.printStackTrace();
+        String url = "https://www.usd-cny.com/bankofchina.htm";
+        Document doc = null;
+        try {
+            doc = Jsoup.connect(url).get();
         }catch (IOException e){
             e.printStackTrace();
         }
+
+        List<String> message = getMessage(doc);
+
+        Message msg = handler.obtainMessage(2);
+        msg.obj = message;
         handler.sendMessage(msg);
+//        URL url=null;
+//        try{
+//        url =new URL("https://www.baidu.com");
+//            HttpsURLConnection http=(HttpsURLConnection) url.openConnection();
+//            InputStream in = http.getInputStream();
+//
+//            String html =inputStream2String(in);
+//            Log.i(TAG,"RUN:HTML="+html);
+//
+//        }catch (MalformedURLException e){
+//            e.printStackTrace();
+//        }catch (IOException e){
+//            e.printStackTrace();
+//        }
+
     }
     private  String inputStream2String(InputStream inputStream) throws IOException {
         final int bufferSize =1024;
@@ -180,5 +195,22 @@ public class MainActivity extends AppCompatActivity implements  Runnable {
             out.append(buffer,0,rsz);
         }
         return  out.toString();
+    }
+
+
+    private List<String> getMessage(Document doc){
+        Elements tables = doc.getElementsByTag("table");
+        Element table = tables.get(0);
+
+        List<String> list = new ArrayList<>();
+
+        Elements trs = table.getElementsByTag("tr");
+        Element e = null;
+        for(int i = 1;i < trs.size();i++){
+            e = trs.get(i);
+            list.add(e.getElementsByTag("td").get(0).text() + ":" + e.getElementsByTag("td").get(5).text());
+        }
+
+        return list;
     }
 }
