@@ -2,11 +2,13 @@ package com.myapp.app04;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -30,6 +32,8 @@ import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,12 +46,14 @@ public class MainActivity extends AppCompatActivity implements  Runnable {
     private EditText et;
     private TextView tv;
 
+    LocalTime t1;
 
     private static final String TAG = "MainActivity";
     float dollar;
     float won;
     float euro;
     Handler handler;
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,6 +61,9 @@ public class MainActivity extends AppCompatActivity implements  Runnable {
 
         et=(EditText)findViewById(R.id.num);
         tv=(TextView)findViewById(R.id.textView);
+
+
+
 
         SharedPreferences sP = getSharedPreferences("myrate", Activity.MODE_PRIVATE);
         dollar = sP.getFloat("dollar_rate",2.0f);
@@ -135,6 +144,10 @@ public class MainActivity extends AppCompatActivity implements  Runnable {
         startActivityForResult(config,1);
     }
 
+    public void duration(LocalTime t1){
+
+
+    }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if(requestCode==1 && resultCode==2){
