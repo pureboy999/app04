@@ -1,13 +1,17 @@
 package com.myapp.app04;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -22,7 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class MainActivity6 extends AppCompatActivity implements Runnable{
+public class MainActivity6 extends AppCompatActivity implements Runnable, AdapterView.OnItemClickListener {
     Handler handler;
     ListView lv;
     private static final String TAG = "MainActivity6_test";
@@ -39,20 +43,12 @@ public class MainActivity6 extends AppCompatActivity implements Runnable{
         handler=new Handler(){
             @Override
             public void handleMessage(@NonNull Message msg) {
-                List<HashMap<String ,String>> list2=new ArrayList<>();
-                List<String> temp=new ArrayList<>();
-                String a[];
+
                 if(msg.what==1){
-                    temp=(List<String>)msg.obj;
-                    a=temp.toString().split(";");
-                    for(int i=0;i<a.length-1;i++){
-                        HashMap<String,String>map=new HashMap<String, String>();
-                        map.put("ItemTitle","Rate:"+a[i].split("!")[0]);
-                        map.put("ItemDeTail","detail"+a[i].split("!")[1]);
-                        list2.add(map);
-                    }
-                    SimpleAdapter listItemAdapter = new SimpleAdapter(MainActivity6.this,list2,R.layout.mylist2,new String[]{"ItemTitle","ItemDeTail"},new int[]{R.id.itemTitle,R.id.itemDetail});
-                    lv.setAdapter(listItemAdapter);
+                    List<HashMap<String,String>> list = (List<HashMap<String,String>>) msg.obj;
+                    MyAdapter myad=new MyAdapter(MainActivity6.this,R.layout.mylist2,list);
+//                    SimpleAdapter listItemAdapter = new SimpleAdapter(MainActivity6.this,list,R.layout.mylist2,new String[]{"itemTitle","itemDetail"},new int[]{R.id.itemTitle,R.id.itemDetail});
+                    lv.setAdapter(myad);
                     Log.i(TAG,"MESSAGE_WHAT1");
 
                 }
@@ -61,11 +57,13 @@ public class MainActivity6 extends AppCompatActivity implements Runnable{
         };
 //        ListAdapter adapter=new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,data);
 //        lv.setAdapter(adapter);
+        lv.setOnItemClickListener(this);
 
 
         Thread t = new Thread(this);
         t.start();
     }
+
 
     @Override
     public void run() {
@@ -78,33 +76,49 @@ public class MainActivity6 extends AppCompatActivity implements Runnable{
             e.printStackTrace();
         }
 
-        List<String> message = getMessage(doc);
+        List<HashMap<String,String>> message = getMessage(doc);
 
         Message msg = handler.obtainMessage(1);
         msg.obj = message;
         handler.sendMessage(msg);
 
-        Message msg1 = handler.obtainMessage(2);
-        List<String> message2=new ArrayList<>();
-        message2.add("hello");
-        message2.add("word");
-        msg1.obj = message2;
-        handler.sendMessage(msg1);
     }
 
-    private List<String> getMessage(Document doc){
+    private List<HashMap<String,String>> getMessage(Document doc){
         Elements tables = doc.getElementsByTag("table");
         Element table = tables.get(0);
 
-        List<String> list = new ArrayList<>();
+        List<HashMap<String,String>> list = new ArrayList<>();
 
         Elements trs = table.getElementsByTag("tr");
         Element e = null;
         for(int i = 1;i < trs.size();i++){
             e = trs.get(i);
-            list.add(e.getElementsByTag("td").get(0).text() + "!" + e.getElementsByTag("td").get(5).text()+";");
+            HashMap<String,String> map = new HashMap<>();
+            map.put("itemTitle",e.getElementsByTag("td").get(0).text());
+            map.put("itemDetail",e.getElementsByTag("td").get(5).text());
+            list.add(map);
         }
         return list;
 
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        Object itemAtPosition =lv.getItemAtPosition(position);
+        HashMap<String,String> map=(HashMap<String,String>)itemAtPosition;
+        String titleStr = map.get("itemTitle");
+        String detailerStr = map.get("itemDetail");
+
+//        TextView title = (TextView) view.findViewById(R.id.itemTitle);
+//        TextView detail =(TextView) view.findViewById(R.id.itemDetail);
+//        String title2=String.valueOf(title.getText());
+//        String detail2=String.valueOf(detail.getText());
+        Intent config  = new Intent(this,MainActivity7.class);
+        Bundle bdl = new Bundle();
+        bdl.putString("current_name",titleStr);
+        bdl.putString("current_rate",detailerStr);
+        config.putExtras(bdl);
+        startActivityForResult(config,1);
     }
 }

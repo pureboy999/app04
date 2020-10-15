@@ -19,7 +19,7 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
+//listView 数据点击
 public class MainActivity3 extends AppCompatActivity implements Runnable{
     Handler handler;
     ListView lv;

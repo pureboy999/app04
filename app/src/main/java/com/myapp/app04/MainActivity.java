@@ -144,10 +144,7 @@ public class MainActivity extends AppCompatActivity implements  Runnable {
         startActivityForResult(config,1);
     }
 
-    public void duration(LocalTime t1){
 
-
-    }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if(requestCode==1 && resultCode==2){
