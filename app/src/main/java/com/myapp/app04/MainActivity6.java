@@ -1,5 +1,6 @@
 package com.myapp.app04;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,6 +15,7 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import org.jsoup.Jsoup;
@@ -26,9 +28,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class MainActivity6 extends AppCompatActivity implements Runnable, AdapterView.OnItemClickListener {
+public class MainActivity6 extends AppCompatActivity implements Runnable,AdapterView.OnItemLongClickListener, AdapterView.OnItemClickListener {
     Handler handler;
     ListView lv;
+    MyAdapter myad;
     private static final String TAG = "MainActivity6_test";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +49,7 @@ public class MainActivity6 extends AppCompatActivity implements Runnable, Adapte
 
                 if(msg.what==1){
                     List<HashMap<String,String>> list = (List<HashMap<String,String>>) msg.obj;
-                    MyAdapter myad=new MyAdapter(MainActivity6.this,R.layout.mylist2,list);
+                    myad=new MyAdapter(MainActivity6.this,R.layout.mylist2,list);
 //                    SimpleAdapter listItemAdapter = new SimpleAdapter(MainActivity6.this,list,R.layout.mylist2,new String[]{"itemTitle","itemDetail"},new int[]{R.id.itemTitle,R.id.itemDetail});
                     lv.setAdapter(myad);
                     Log.i(TAG,"MESSAGE_WHAT1");
@@ -57,8 +60,9 @@ public class MainActivity6 extends AppCompatActivity implements Runnable, Adapte
         };
 //        ListAdapter adapter=new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,data);
 //        lv.setAdapter(adapter);
+        lv.setEmptyView(findViewById(R.id.nodata));
         lv.setOnItemClickListener(this);
-
+        lv.setOnItemLongClickListener(this);
 
         Thread t = new Thread(this);
         t.start();
@@ -114,11 +118,31 @@ public class MainActivity6 extends AppCompatActivity implements Runnable, Adapte
 //        TextView detail =(TextView) view.findViewById(R.id.itemDetail);
 //        String title2=String.valueOf(title.getText());
 //        String detail2=String.valueOf(detail.getText());
+
         Intent config  = new Intent(this,MainActivity7.class);
         Bundle bdl = new Bundle();
         bdl.putString("current_name",titleStr);
         bdl.putString("current_rate",detailerStr);
         config.putExtras(bdl);
         startActivityForResult(config,1);
+
+        //删除数据
+
+    }
+    int i;
+    @Override
+    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+        AlertDialog.Builder b=new AlertDialog.Builder(this);
+        i=position;
+        b.setTitle("提示").setMessage("请确认是否删除当前数据").setPositiveButton("是", new
+                DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Log.i(TAG,"onClick:对话框事件处理");
+                        myad.remove(lv.getItemAtPosition(i));
+                    }
+                }).setNegativeButton("否",null);
+        b.create().show();
+        return true;
     }
 }
