@@ -1,7 +1,9 @@
 package com.myapp.app04;
 
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -24,7 +26,9 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -32,6 +36,8 @@ public class MainActivity6 extends AppCompatActivity implements Runnable,Adapter
     Handler handler;
     ListView lv;
     MyAdapter myad;
+    SharedPreferences sp;
+    String date;
     private static final String TAG = "MainActivity6_test";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,25 +45,50 @@ public class MainActivity6 extends AppCompatActivity implements Runnable,Adapter
         setContentView(R.layout.activity_list);
 
         lv=(ListView)findViewById(R.id.mylist);
-        String data[]={"one","two"};
-        //子线程任务
 
+        sp = getSharedPreferences("rate", Activity.MODE_PRIVATE);
+        date = sp.getString("date","");
+        //当前日期
+        Date now = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        String nowDate = sdf.format(now);
 
-        handler=new Handler(){
-            @Override
-            public void handleMessage(@NonNull Message msg) {
-
-                if(msg.what==1){
-                    List<HashMap<String,String>> list = (List<HashMap<String,String>>) msg.obj;
-                    myad=new MyAdapter(MainActivity6.this,R.layout.mylist2,list);
-//                    SimpleAdapter listItemAdapter = new SimpleAdapter(MainActivity6.this,list,R.layout.mylist2,new String[]{"itemTitle","itemDetail"},new int[]{R.id.itemTitle,R.id.itemDetail});
-                    lv.setAdapter(myad);
-                    Log.i(TAG,"MESSAGE_WHAT1");
-
-                }
-                super.handleMessage(msg);
-            }
-        };
+        //是同一天则直接从文件中读出数据
+        if(date.equals(nowDate)){
+            //从网络中获取数据
+            getData();
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putString("date",nowDate);
+            editor.apply();
+//            List<RateItem> list = new ArrayList<>();
+//            RateManager rateManager = new RateManager(getBaseContext());
+//            list = rateManager.findAll();
+//            myad=new MyAdapter(MainActivity6.this,R.layout.mylist2,list);
+////                    SimpleAdapter listItemAdapter = new SimpleAdapter(MainActivity6.this,list,R.layout.mylist2,new String[]{"itemTitle","itemDetail"},new int[]{R.id.itemTitle,R.id.itemDetail});
+//            lv.setAdapter(myad);
+//            Log.i(TAG,"MESSAGE_WHAT1");
+        }else{
+            //从网络中获取数据
+            getData();
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putString("date",nowDate);
+            editor.apply();
+        }
+//        handler=new Handler(){
+//            @Override
+//            public void handleMessage(@NonNull Message msg) {
+//
+//                if(msg.what==1){
+//                    List<RateItem> list = (List<RateItem>) msg.obj;
+//                    myad=new MyAdapter(MainActivity6.this,R.layout.mylist2,list);
+////                    SimpleAdapter listItemAdapter = new SimpleAdapter(MainActivity6.this,list,R.layout.mylist2,new String[]{"itemTitle","itemDetail"},new int[]{R.id.itemTitle,R.id.itemDetail});
+//                    lv.setAdapter(myad);
+//                    Log.i(TAG,"MESSAGE_WHAT1");
+//
+//                }
+//                super.handleMessage(msg);
+//            }
+//        };
 //        ListAdapter adapter=new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,data);
 //        lv.setAdapter(adapter);
         lv.setEmptyView(findViewById(R.id.nodata));
@@ -80,7 +111,7 @@ public class MainActivity6 extends AppCompatActivity implements Runnable,Adapter
             e.printStackTrace();
         }
 
-        List<HashMap<String,String>> message = getMessage(doc);
+        List<RateItem> message = getMessage(doc);
 
         Message msg = handler.obtainMessage(1);
         msg.obj = message;
@@ -88,31 +119,67 @@ public class MainActivity6 extends AppCompatActivity implements Runnable,Adapter
 
     }
 
-    private List<HashMap<String,String>> getMessage(Document doc){
+    private List<RateItem> getMessage(Document doc){
         Elements tables = doc.getElementsByTag("table");
         Element table = tables.get(0);
 
-        List<HashMap<String,String>> list = new ArrayList<>();
+        List<RateItem> list = new ArrayList<>();
 
         Elements trs = table.getElementsByTag("tr");
         Element e = null;
         for(int i = 1;i < trs.size();i++){
             e = trs.get(i);
-            HashMap<String,String> map = new HashMap<>();
-            map.put("itemTitle",e.getElementsByTag("td").get(0).text());
-            map.put("itemDetail",e.getElementsByTag("td").get(5).text());
+//            HashMap<String,String> map = new HashMap<>();
+//            map.put("itemTitle",e.getElementsByTag("td").get(0).text());
+//            map.put("itemDetail",e.getElementsByTag("td").get(0).text());
+            RateItem map = new RateItem();
+            map.setCurRate(e.getElementsByTag("td").get(5).text());
+            map.setCurName(e.getElementsByTag("td").get(0).text());
             list.add(map);
         }
         return list;
 
     }
 
+    private void getData(){
+        Thread t = new Thread(this);
+        t.start();
+        handler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                if (msg.what == 1) {
+                    String allRate = "";
+                    List<RateItem> list = (List<RateItem>) msg.obj;
+                    myad = new MyAdapter(MainActivity6.this,
+                            R.layout.mylist2,
+                            list);
+
+                    lv.setAdapter(myad);
+
+                    for (RateItem currency : list) {
+                        allRate += currency.getCurName() + ":" + currency.getCurRate() + ",";
+                    }
+
+                    sp = getSharedPreferences("rate", Activity.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = sp.edit();
+                    editor.putString("allRate", allRate);
+                    editor.apply();
+
+                    RateManager rateManager = new RateManager(getBaseContext());
+                    rateManager.deleteAll();
+                    rateManager.addAll(list);
+                }
+                super.handleMessage(msg);
+            }
+        };
+    }
+
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Object itemAtPosition =lv.getItemAtPosition(position);
-        HashMap<String,String> map=(HashMap<String,String>)itemAtPosition;
-        String titleStr = map.get("itemTitle");
-        String detailerStr = map.get("itemDetail");
+        RateItem map=(RateItem)itemAtPosition;
+        String titleStr = map.getCurName();
+        String detailerStr = map.getCurRate();
 
 //        TextView title = (TextView) view.findViewById(R.id.itemTitle);
 //        TextView detail =(TextView) view.findViewById(R.id.itemDetail);

@@ -25,12 +25,12 @@ public class MyAdapter extends ArrayAdapter {
         if(itemView==null){
             itemView = LayoutInflater.from(getContext()).inflate(R.layout.mylist2,parent,false);
         }
-        Map<String,String> map=(Map<String,String>) getItem(position);
+        RateItem map=(RateItem) getItem(position);
         TextView title = (TextView) itemView.findViewById(R.id.itemTitle);
         TextView detail = (TextView) itemView.findViewById(R.id.itemDetail);
 
-        title.setText("Title:"+map.get("itemTitle"));
-        detail.setText("itemDetail:"+map.get("itemDetail"));
+        title.setText("Title:"+map.getCurName());
+        detail.setText("itemDetail:"+map.getCurRate());
 
         return itemView;
     }

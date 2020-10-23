@@ -21,11 +21,11 @@ public class MainActivity7 extends AppCompatActivity {
         setContentView(R.layout.activity_main7);
 
 
+
+        Intent intent = getIntent();
         textView1 = findViewById(R.id.name);
         textView2 = findViewById(R.id.calculate);
         editText = findViewById(R.id.rate);
-
-        Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
         name = bundle.getString("current_name","");
         rate = Double.parseDouble(bundle.getString("current_rate",""));
